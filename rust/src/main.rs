@@ -8,7 +8,7 @@ struct Adyayh<'a> {
     /// क्रमः॑
     krmh: usize,
     /// पर्व॑णो॒ नाम॑
-    prvnam: Option<&'a str>,
+    prvnam: &'a str,
 }
 
 /// पर्व॑
@@ -18,54 +18,28 @@ struct Prv<'a> {
 
 /// पर्व॑णां॒ ग्रह॑णम्
 fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
-    let mut prvani: Vec<Prv> = vec![];//             षट् पञ्चाशत्तमोऽध्यायः णि गोहरणपर्वणि दे वागमने षट्पञ्चाशत्तमोऽध्यायः  । । 
-    let re = regex::Regex::new(r"(?ms)^ *([ं-् ]+)[ोऽ] ?ध्या ?यः[ \*]*$(.*?)इति (.*?)[ोऽ] ?ध?्?या ?य?यः?[ ।\n]*([०-९]+)[ ।]*$").unwrap();
+    let mut prvani: Vec<Prv> = vec![];
+    let re = regex::Regex::new(r"(?ms)^ *([ं-् ]+)[ोऽ] ?ध्या ?यः[ \*]*$(.*?)ಇ([^ಇ]*)[ोऽ] ?ध?्?या ?य?यः?२?[ ।\n]*([०-९]+)[ ।]*$").unwrap();
+    let iti = regex::Regex::new(r"(?ms)इति(.*?)\z").unwrap();
     let ankkrmh = "०१२३४५६७८९";
     let snkya = |path: &str| -> usize {
         path.chars()
             .fold(0, |s, c| s * 10 + ankkrmh.chars().position(|a| a == c).unwrap())
     };
-/*
-    let adyaypdani: Vec<_> = path.match_indices("ऽध्यायः").collect();
-    let adyaysbdaksrsnkya = "ऽध्यायः".len();
-    assert_eq!(adyaypdani.len() % 2, 0);
-    for i in 0..adyaypdani.len()/2 {
-        let prtmm = adyaypdani[i*2].0;
-        let dvitiym = adyaypdani[i*2+1].0;
-        let adyayh = Adyayh {
-            path: &path[prtmm + adyaysbdaksrsnkya..dvitiym + adyaysbdaksrsnkya],
-            krmnam: path[prtmm - (0..).find(|i| *path.as_bytes()[prtmm-i..].iter().next().unwrap() == "\n".as_bytes()[0]).unwrap() + 1..prtmm].replace(" ", ""),
-            krmh: 1,//snkya(&path[dvitiym + adyaysbdaksrsnkya..path[dvitiym + adyaysbdaksrsnkya..].chars().position(|c| c == '\n').unwrap() + dvitiym + adyaysbdaksrsnkya]).unwrap(),
-            prvnam: None,
-        };
-        let krmnam = adyayh.krmnam.to_string();
-        if adyayh.krmnam == "प्रथमो" {
-            assert_eq!(adyayh.krmh, 1);
-            prvani.push(Prv{adyayah: vec![adyayh]});
-        } else {
-            let prvsnkya = prvani.len();
-            assert!(prvsnkya > 0);
-            prvani[prvsnkya-1].adyayah.push(adyayh);
-        }
-        if prvani.len() == 1 {
-            println!("parvasaṅkhyā́: {}, adhyāyasaṅkhyā́: {}, kramanāmá: {}", prvani.len(), prvani.last().unwrap().adyayah.len(), krmnam);
-        }
-    }
-    */
-
     for adyaypath in re.captures_iter(path) {
         let pathbagh = |krmh| {
             let bagh = adyaypath.get(krmh).unwrap();
             &path[bagh.start()..bagh.end()]
         };
         let adyayh = Adyayh {
-            path: pathbagh(0),
+            path: pathbagh(2),
             krmnam: pathbagh(1).replace(" ", ""),
             krmh: snkya(pathbagh(4)),
-            prvnam: Some(pathbagh(3)),
+            prvnam: pathbagh(3),
         };
         let krmnam = adyayh.krmnam.to_string();
         let krmh = adyayh.krmh;
+        let prvnam = adyayh.prvnam.to_string();
         if adyayh.krmnam == "प्रथमो" {
             prvani.push(Prv{adyayah: vec![adyayh]});
         } else {
@@ -74,27 +48,27 @@ fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
             prvani[prvsnkya-1].adyayah.push(adyayh);
         }
         let adyaysnkya = prvani.last().unwrap().adyayah.len();
-        assert!(krmh == adyaysnkya || (krmh == 15 && adyaysnkya == 95));
-        println!("párva: {}, kramanāmá: {}, krámaḥ: {}, nā́ma: {}", prvani.len(), krmnam, krmh, prvani.last().unwrap().adyayah.last().unwrap().prvnam.unwrap());
+        assert!(krmh == adyaysnkya || (krmh / 10 == 1 && adyaysnkya / 10 == 9));
+        println!("nā́ma: {}, párva: {}, kramanāmá: {}, krámaḥ: {}", prvnam, prvani.len(), krmnam, krmh);
     }
-   
     prvani
 }
 
 fn main() {
     println!("pā́ṭho gṛhyate.");
+    let krsnarjunsmvadh = regex::Regex::new(r"(श्री ?कृ ?ष्णा ?र्जु ?न ?सं ?वा ?दे(.*?)[ोऽ] ?ध?्?या ?य?यः?)").unwrap();
     let path = (1..15434/*4*/).map(|i| {
         if i % 100 == 0 {
             print!("{} ", i);
         }
-        std::fs::read_to_string(format!("../txt/{:05}.txt", i)).unwrap()
+        krsnarjunsmvadh.replace_all(&std::fs::read_to_string(format!("../txt/{:05}.txt", i)).unwrap(), r"${1}ಗ").replace("इति", "ಇ")
     }).collect::<Vec<String>>().join("\n");
     println!("\npā́ṭho gṛhītáḥ.");
-    for l in path.split("\n").filter(|l| l.contains("ऽध्यायः")).take(200) {
-        println!("{}", l);
-    }
-    let prvani = prvgrhnm(&path);
-    for adyayh in prvani[0].adyayah.iter() {
-        //println!("{} {}", adyayh.krmnam, adyayh.path.len());
+    for (i, prv) in prvgrhnm(&path).iter().enumerate() {
+    	std::fs::create_dir_all(format!("../mbh/{}", i + 1));
+    	for adyayh in &prv.adyayah {
+    		println!("adhyāyó likhyate: {}.{}", i + 1, adyayh.krmh);
+    		std::fs::write(format!("../mbh/{}/{}.html", i + 1, adyayh.krmh), format!("<title>{}ोऽध्यायः</title><b>{}ोऽध्यायः</b><br>{}<br><b>इति {}ोऽध्यायः॥</b>", adyayh.prvnam, adyayh.krmnam, adyayh.path.replace("\n", "<br>").replace(" ", "&nbsp;"), adyayh.prvnam).replace("ोो", "ो").replace("ಇ", "इति").replace("ಗ", ""));
+    	}
     }
 }
