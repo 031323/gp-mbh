@@ -20,8 +20,6 @@ struct Prv<'a> {
 fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
     let mut prvani: Vec<Prv> = vec![];
     let re = regex::Regex::new(r"(?ms)^([ं-् <b>]+)[ोऽ] ?ध्या ?यः *[ \*</b>]*$(.*?)ಇ([^ಇ]*)[ोऽ] ?ध?्?या ?य?यः?२?[ ्।</b>\n]*([०-९]+)[ ।</b>]*$").unwrap();
-    //let re = regex::Regex::new(r"(?ms)^([ं-् ]+)[ोऽ] ?ध्या ?यः[ \*]*$(.*?)ಇ([^ಇ]*)[ोऽ] ?ध?्?या ?य?यः?२?[ ्।\n]*([०-९]+)[ ।]*$").unwrap();
-    let iti = regex::Regex::new(r"(?ms)इति(.*?)\z").unwrap();
     let ankkrmh = "०१२३४५६७८९";
     let snkya = |path: &str| -> usize {
         path.chars().fold(0, |s, c| {
@@ -60,13 +58,13 @@ fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
             krmnam,
             krmh
         );
-        assert!(krmh == adyaysnkya || (krmh / 10 == 1 && adyaysnkya / 10 == 9));
+        assert!(krmh == adyaysnkya || (krmh / 10 == 1 && adyaysnkya / 10 == 9 && krmh % 10 == adyaysnkya % 10));
     }
     prvani
 }
 
 fn main() {
-    println!("pā́ṭho gṛhyate.");
+    println!("pāṭhó gṛhyate.");
     let krsnarjunsmvadh =
         regex::Regex::new(r"(श्री ?कृ ?ष्णा ?र्जु ?न ?सं ?वा ?दे(.*?)[ोऽ] ?ध?्?या ?य?यः?)").unwrap();
     let path = (1..15434)
@@ -84,7 +82,7 @@ fn main() {
         .collect::<Vec<String>>()
         .join("\n");//.replace("<b>", "").replace("</b>", "");
     std::fs::write("path", &path);
-    println!("\npā́ṭho gṛhītáḥ.");
+    println!("\npāṭhó gṛhītáḥ.");
     for (i, prv) in prvgrhnm(&path).iter().enumerate() {
         std::fs::create_dir_all(format!("../mbh/{}", i + 1));
         for (ai, adyayh) in prv.adyayah.iter().enumerate() {
