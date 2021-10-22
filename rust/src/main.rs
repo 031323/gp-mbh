@@ -33,7 +33,7 @@ fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
         };
         let adyayh = Adyayh {
             path: pathbagh(2),
-            krmnam: pathbagh(1).replace(" ", ""),
+            krmnam: pathbagh(1).replace(" ", "").replace("<b>", "").replace("</b>", ""),
             krmh: snkya(pathbagh(4)),
             prvnam: pathbagh(3),
         };
@@ -80,21 +80,21 @@ fn main() {
                 .replace("इति", "ಇ")
         })
         .collect::<Vec<String>>()
-        .join("\n");//.replace("<b>", "").replace("</b>", "");
+        .join("\n");
     std::fs::write("path", &path);
     println!("\npāṭhó gṛhītáḥ.");
     for (i, prv) in prvgrhnm(&path).iter().enumerate() {
-        std::fs::create_dir_all(format!("../mbh/{}", i + 1));
+        std::fs::create_dir_all(format!("../pages/mbh/{}", i + 1));
         for (ai, adyayh) in prv.adyayah.iter().enumerate() {
             println!("adhyāyó likhyate: {}.{}", i + 1, ai + 1);
             std::fs::write(
-                format!("../mbh/{}/{}.html", i + 1, ai + 1),
+                format!("../pages/mbh/{}/{}.html", i + 1, ai + 1),
                 format!(
-                    "<title>{}ोऽध्यायः</title>{}ोऽध्यायः<br>{}<br>इति {}ोऽध्यायः॥",
+                    "<title>{}ोऽध्यायः</title><b>{}ोऽध्यायः</b><br>{}<br><b>इति {}ोऽध्यायः॥</b>",
                     adyayh.prvnam,
                     adyayh.krmnam,
                     adyayh.path.replace("\n", "<br>").replace(" ", "&nbsp;"),
-                    adyayh.prvnam
+                    adyayh.prvnam.replace("<b>", "").replace("</b>", "")
                 )
                 .replace("ोो", "ो")
                 .replace("ಇ", "इति")
