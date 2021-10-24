@@ -1,7 +1,7 @@
 /// अ॒ध्या॒यः
 #[derive(Debug)]
 struct Adyayh<'a> {
-    /// पाठः॑
+    /// पा॒ठः
     path: &'a str,
     /// अ॒ध्या॒यस्य॒ क्रम॑स्य॒ संस्कृ॑ते॒ नाम॑
     krmnam: String,
@@ -63,26 +63,44 @@ fn prvgrhnm<'a>(path: &'a str) -> Vec<Prv<'a>> {
     prvani
 }
 
+fn pathsodh(path: String) -> String {
+    let mut p = path;
+    let r = [
+        (r"\[sl\]", "<i>"),
+        (r"\[/sl\]", "</i>"),
+        (r"\[/[^\[\]]*-Bold\]", "</b>"),
+        (r"\[[^\[\]]*-Bold\]", "<b>"),
+        (r"\[[!-Z\^-~]+\]", ""),
+        (r"</b>([ \n]*)<b>", "$1"),
+        (r"</i>([ \n]*)<i>", "$1"),
+    ];
+    for x in r {
+        p = regex::Regex::new(x.0).unwrap().replace_all(&p, x.1).to_string();
+    }
+    let mut q = "".to_string();
+    let succ = regex::Regex::new(r"(.)<CCsucc>(([क-हक़-य़]़?्)*[क-हक़-य़]़?)").unwrap();
+    let prec = regex::Regex::new(r"(([क-हक़-य़]़?्)*[क-हक़-य़ऋ][^क-हक़-य़ऋ]*)र्<CCprec>").unwrap();
+    while q.ne(&p) {
+        q = p.to_string();
+        p = succ.replace_all(&p, "$2$1").to_string();
+        p = prec.replace_all(&p, "र्$1").to_string();
+    }
+    p.replace("र्ऋ", "रृ")
+}
+
 fn main() {
-    println!("pāṭhó gṛhyate.");
+    let args: Vec<String> = std::env::args().collect();
+    assert_eq!(args.len(), 2);
     let krsnarjunsmvadh =
         regex::Regex::new(r"(श्री ?कृ ?ष्णा ?र्जु ?न ?सं ?वा ?दे(.*?)[ोऽ] ?ध?्?या ?य?यः?)").unwrap();
-    let path = (1..15434)
-        .map(|i| {
-            if i % 100 == 0 {
-                print!("{} ", i);
-            }
-            krsnarjunsmvadh
+    println!("pāṭhó gṛhyate.");
+    let path = krsnarjunsmvadh
                 .replace_all(
-                    &std::fs::read_to_string(format!("../txt/{:05}.txt", i)).unwrap(),
+                    &pathsodh(std::fs::read_to_string(&args[1]).unwrap()),
                     r"${1}ಗ",
                 )
                 .replace("इति", "ಇ")
-        })
-        .collect::<Vec<String>>()
-        .join("\n");
-    std::fs::write("path", &path);
-    println!("\npāṭhó gṛhītáḥ.");
+                .replace("\u{0c}", "");
     for (i, prv) in prvgrhnm(&path).iter().enumerate() {
         std::fs::create_dir_all(format!("../pages/mbh/{}", i + 1));
         for (ai, adyayh) in prv.adyayah.iter().enumerate() {
