@@ -9,7 +9,7 @@
 
 ```bash
 cd rust
-cargo run cargo run --release -- <तस्य॒ यद् वा॒ स्थान॒न् नाम॑ च>.txt
+cargo run --release -- <तस्य॒ यद् वा॒ स्थान॒न् नाम॑ च>.txt
 ```
 
 अ॒नेन॑ `pages/mbh/` इत्यत्र॑ महाभारतपा॒ठः स्था॑प्यते।
